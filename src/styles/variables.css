@@ -1,0 +1,51 @@
+:root {
+  /* HSL Color Space Design Tokens */
+  --bg-base: 240 10% 3.9%;          /* #0a0a0c */
+  --bg-surface: 240 6% 10%;        /* #18181b */
+  --bg-surface-elevated: 240 5% 15%; /* #27272a */
+  
+  --text-primary: 0 0% 98%;        /* #fafafa */
+  --text-secondary: 240 5% 64.9%;  /* #a1a1aa */
+  --text-muted: 240 3.8% 46.1%;    /* #71717a */
+  
+  --accent-primary: 262.5 83.3% 57.8%; /* #8b5cf6 (violet) */
+  --accent-hover: 263.4 70% 50.4%;     /* #7c3aed */
+  --accent-glow: rgba(139, 92, 246, 0.15);
+  
+  --border-subtle: 240 5.9% 15%;   /* #27272a */
+  --border-strong: 240 5.9% 20%;   /* #3f3f46 */
+  
+  /* Glassmorphism settings */
+  --glass-bg: rgba(18, 18, 22, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+  /* Alert / Feedback States */
+  --success: 142.1 70.6% 45.3%;    /* green */
+  --warning: 37.9 90.2% 50.2%;     /* amber */
+  --danger: 346.8 77.2% 49.8%;     /* rose */
+
+  /* Spacing */
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+
+  /* Borders & Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Transitions & Animation speeds */
+  --transition-fast: 120ms ease;
+  --transition-normal: 220ms ease-out;
+  --transition-slow: 350ms cubic-bezier(0.16, 1, 0.3, 1);
+  
+  /* Fonts */
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-header: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+}
