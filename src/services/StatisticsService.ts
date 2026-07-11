@@ -59,4 +59,4 @@ export class StatisticsService {
     };
   }
 }
-export { ObjectStatistics };
+

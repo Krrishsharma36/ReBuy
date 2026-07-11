@@ -1,24 +1,97 @@
 import React, { useState } from 'react';
-import { Sun, Moon, Laptop, Download, Upload, Info } from 'lucide-react';
+import { Sun, Moon, Laptop, Download, Upload, Info, Database, Play, Trash2 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useNavigation } from '../../context/NavigationContext';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { SnackBar } from '../../components/SnackBar';
+import { BackupService } from '../../services/BackupService';
+import { DatabaseSeeder } from '../../utils/seeder';
+import { ReBuyDBManager } from '../../database/db';
 
 export function SettingsScreen() {
   const { theme, setTheme } = useTheme();
   const { navigateTo } = useNavigation();
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'danger' } | null>(null);
+  const [seeding, setSeeding] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
-  const handleExport = () => {
-    // Mock export download trigger
-    setToastMessage('Exported 4 memory records to ReBuy_Backup.json');
+  const backupService = new BackupService();
+
+  const handleExport = async () => {
+    try {
+      const json = await backupService.exportData();
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ReBuy_Backup_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      setToast({ message: 'Backup JSON downloaded successfully', type: 'success' });
+    } catch (e) {
+      setToast({ message: 'Failed to export backup', type: 'danger' });
+    }
   };
 
-  const handleImport = () => {
-    // Mock import action triggers
-    setToastMessage('Successfully imported 14 memory logs from backup');
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target?.result as string;
+        await backupService.importData(text, 'merge');
+        setToast({ message: 'Backup merge completed successfully', type: 'success' });
+      } catch (err) {
+        setToast({ message: 'Failed to import backup file', type: 'danger' });
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleSeed = async () => {
+    setSeeding(true);
+    try {
+      const result = await DatabaseSeeder.seed(30, 3);
+      setToast({
+        message: `Successfully seeded ${result.objectsSeeded} objects & ${result.activitiesSeeded} activities in ${result.durationMs}ms!`,
+        type: 'success'
+      });
+    } catch (e) {
+      setToast({ message: 'Seeding database failed', type: 'danger' });
+    } finally {
+      setSeeding(false);
+    }
+  };
+
+  const handleClearDatabase = async () => {
+    if (!confirm('Are you absolutely sure you want to clear ReBuyDB? This will wipe out all memories, activities, and settings!')) return;
+    setClearing(true);
+    try {
+      const dbManager = ReBuyDBManager.getInstance();
+      const stores: ('objects' | 'activities' | 'preferences' | 'metadata' | 'searchIndex')[] = [
+        'objects',
+        'activities',
+        'preferences',
+        'metadata',
+        'searchIndex'
+      ];
+      for (const storeName of stores) {
+        const { store } = await dbManager.getStoreTransaction(storeName, 'readwrite');
+        await new Promise<void>((resolve, reject) => {
+          const request = store.clear();
+          request.onsuccess = () => resolve();
+          request.onerror = () => reject(request.error);
+        });
+      }
+      setToast({ message: 'Database cleared successfully. All stores wiped.', type: 'success' });
+    } catch (e) {
+      setToast({ message: 'Failed to clear database', type: 'danger' });
+    } finally {
+      setClearing(false);
+    }
   };
 
   return (
@@ -88,10 +161,40 @@ export function SettingsScreen() {
         </h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-8)' }}>
           <Button variant="secondary" onClick={handleExport} icon={<Download size={16} />} style={{ justifyContent: 'flex-start' }}>
-            Export Memory Database
+            Export Database to JSON
           </Button>
-          <Button variant="secondary" onClick={handleImport} icon={<Upload size={16} />} style={{ justifyContent: 'flex-start' }}>
-            Import Memory Database
+          
+          <div style={{ position: 'relative', width: '100%' }}>
+            <Button
+              variant="secondary"
+              onClick={() => document.getElementById('importFile')?.click()}
+              icon={<Upload size={16} />}
+              style={{ justifyContent: 'flex-start', width: '100%' }}
+            >
+              Import JSON Backup
+            </Button>
+            <input
+              id="importFile"
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              style={{ display: 'none' }}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Developer Options */}
+      <section style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-12)' }}>
+        <h2 className="text-12" style={{ fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          Developer Tools
+        </h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-8)' }}>
+          <Button variant="secondary" onClick={handleSeed} disabled={seeding} icon={<Play size={16} />} style={{ justifyContent: 'flex-start' }}>
+            {seeding ? 'Seeding Database...' : 'Seed 30 Sample Memories'}
+          </Button>
+          <Button variant="ghost" onClick={handleClearDatabase} disabled={clearing} icon={<Trash2 size={16} />} style={{ justifyContent: 'flex-start', color: 'var(--danger)' }}>
+            {clearing ? 'Clearing Stores...' : 'Wipe ReBuyDB Stores'}
           </Button>
         </div>
       </section>
@@ -106,15 +209,14 @@ export function SettingsScreen() {
         </Button>
       </section>
 
-      {/* Toast popup */}
-      {toastMessage && (
+      {/* SnackBar Toasts */}
+      {toast && (
         <SnackBar
-          message={toastMessage}
-          type="success"
-          onClose={() => setToastMessage(null)}
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
         />
       )}
     </div>
   );
 }
-
