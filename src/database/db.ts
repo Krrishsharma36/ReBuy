@@ -1,42 +1,28 @@
-export interface ParsedMemoryData {
-  price?: number;
-  currency?: string;
-  merchant?: string;
-  category?: string;
-  tags: string[];
-  date?: Date;
-  rawParsedValues: Record<string, any>;
-}
+import { ReBuyDBError } from '../types';
 
-export interface Memory {
-  id: string; // UUID or unique timestamp key
-  rawText: string; // The original captured line (e.g. "Oil change $65 @ PepBoys #auto")
-  parsedData: ParsedMemoryData;
-  createdAt: Date;
-  updatedAt: Date;
-  nextReminderDate?: Date; // For recurring alerts, service intervals, renewals
-  isFlagged?: boolean; // For pin/favorites
-}
-
-const DB_NAME = 'rebuy_memory_engine';
+const DB_NAME = 'ReBuyDB';
 const DB_VERSION = 1;
-const STORE_NAME = 'memories';
 
-export class IndexedDBManager {
-  private static instance: IndexedDBManager;
+export class ReBuyDBManager {
+  private static instance: ReBuyDBManager;
   private db: IDBDatabase | null = null;
 
   private constructor() {}
 
-  public static getInstance(): IndexedDBManager {
-    if (!IndexedDBManager.instance) {
-      IndexedDBManager.instance = new IndexedDBManager();
+  public static getInstance(): ReBuyDBManager {
+    if (!ReBuyDBManager.instance) {
+      ReBuyDBManager.instance = new ReBuyDBManager();
     }
-    return IndexedDBManager.instance;
+    return ReBuyDBManager.instance;
+  }
+
+  public async getDB(): Promise<IDBDatabase> {
+    if (this.db) return this.db;
+    return this.initialize();
   }
 
   /**
-   * Initializes the database connection and handles migrations/schema setup.
+   * Opens IndexedDB connection and runs schema structure upgrades.
    */
   public async initialize(): Promise<IDBDatabase> {
     if (this.db) return this.db;
@@ -45,8 +31,7 @@ export class IndexedDBManager {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
 
       request.onerror = () => {
-        console.error('IndexedDB open error:', request.error);
-        reject(request.error);
+        reject(new ReBuyDBError('Failed to open database ReBuyDB', 'DB_OPEN_FAILED', request.error));
       };
 
       request.onsuccess = () => {
@@ -58,116 +43,53 @@ export class IndexedDBManager {
         const db = request.result;
         const oldVersion = event.oldVersion;
 
-        console.log(`[IndexedDB] Upgrading from version ${oldVersion} to ${DB_VERSION}`);
+        console.log(`[ReBuyDB] Upgrading schema from version ${oldVersion} to ${DB_VERSION}`);
 
         if (oldVersion < 1) {
-          // Create memories object store
-          const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+          // 1. Objects Store
+          const objectsStore = db.createObjectStore('objects', { keyPath: 'id' });
+          objectsStore.createIndex('name', 'name', { unique: false });
+          objectsStore.createIndex('normalizedName', 'normalizedName', { unique: false });
+          objectsStore.createIndex('type', 'type', { unique: false });
+          objectsStore.createIndex('brand', 'brand', { unique: false });
+          objectsStore.createIndex('tags', 'tags', { unique: false, multiEntry: true });
+          objectsStore.createIndex('lastActivityDate', 'lastActivityDate', { unique: false });
+          objectsStore.createIndex('isArchived', 'isArchived', { unique: false });
 
-          // Create indices for lightning fast client-side searching and sorting
-          store.createIndex('createdAt', 'createdAt', { unique: false });
-          store.createIndex('updatedAt', 'updatedAt', { unique: false });
-          store.createIndex('merchant', 'parsedData.merchant', { unique: false });
-          store.createIndex('category', 'parsedData.category', { unique: false });
-          store.createIndex('nextReminderDate', 'nextReminderDate', { unique: false });
-          
-          // multiEntry index allows querying individual tags that are inside the array
-          store.createIndex('tags', 'parsedData.tags', { unique: false, multiEntry: true });
+          // 2. Activities Store
+          const activitiesStore = db.createObjectStore('activities', { keyPath: 'id' });
+          activitiesStore.createIndex('objectId', 'objectId', { unique: false });
+          activitiesStore.createIndex('activityType', 'activityType', { unique: false });
+          activitiesStore.createIndex('activityDate', 'activityDate', { unique: false });
+          activitiesStore.createIndex('shop', 'shop', { unique: false });
+          activitiesStore.createIndex('isArchived', 'isArchived', { unique: false });
+
+          // 3. Preferences Store (Key-Value)
+          db.createObjectStore('preferences', { keyPath: 'key' });
+
+          // 4. Metadata Store (Key-Value)
+          db.createObjectStore('metadata', { keyPath: 'key' });
+
+          // 5. SearchIndex Store
+          const searchIndexStore = db.createObjectStore('searchIndex', { keyPath: 'id' });
+          searchIndexStore.createIndex('objectId', 'objectId', { unique: false });
+          searchIndexStore.createIndex('token', 'token', { unique: false, multiEntry: true });
         }
       };
     });
   }
 
-  private async getDB(): Promise<IDBDatabase> {
-    if (this.db) return this.db;
-    return this.initialize();
-  }
-
   /**
-   * Retrieve all memories sorted by creation date descending.
+   * Helper to retrieve a store handle inside an isolated transaction.
    */
-  public async getAll(): Promise<Memory[]> {
+  public async getStoreTransaction(
+    storeName: 'objects' | 'activities' | 'preferences' | 'metadata' | 'searchIndex',
+    mode: IDBTransactionMode = 'readonly'
+  ): Promise<{ transaction: IDBTransaction; store: IDBObjectStore }> {
     const db = await this.getDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(STORE_NAME, 'readonly');
-      const store = transaction.objectStore(STORE_NAME);
-      const index = store.index('createdAt');
-      // Cursor to walk in descending order (newest first)
-      const request = index.openCursor(null, 'prev');
-      const results: Memory[] = [];
-
-      request.onsuccess = () => {
-        const cursor = request.result;
-        if (cursor) {
-          results.push(cursor.value as Memory);
-          cursor.continue();
-        } else {
-          resolve(results);
-        }
-      };
-
-      request.onerror = () => reject(request.error);
-    });
-  }
-
-  /**
-   * Save or update a memory record.
-   */
-  public async save(memory: Memory): Promise<void> {
-    const db = await this.getDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.put(memory);
-
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
-  }
-
-  /**
-   * Delete a memory record by ID.
-   */
-  public async delete(id: string): Promise<void> {
-    const db = await this.getDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.delete(id);
-
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
-  }
-
-  /**
-   * Find a single memory by ID.
-   */
-  public async getById(id: string): Promise<Memory | null> {
-    const db = await this.getDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(STORE_NAME, 'readonly');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.get(id);
-
-      request.onsuccess = () => resolve(request.result || null);
-      request.onerror = () => reject(request.error);
-    });
-  }
-
-  /**
-   * Fast query by index name and target key.
-   */
-  public async getByIndex(indexName: 'merchant' | 'category' | 'tags', key: string): Promise<Memory[]> {
-    const db = await this.getDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(STORE_NAME, 'readonly');
-      const store = transaction.objectStore(STORE_NAME);
-      const index = store.index(indexName);
-      const request = index.getAll(key);
-
-      request.onsuccess = () => resolve(request.result as Memory[]);
-      request.onerror = () => reject(request.error);
-    });
+    const transaction = db.transaction(storeName, mode);
+    const store = transaction.objectStore(storeName);
+    return { transaction, store };
   }
 }
+export { DB_NAME, DB_VERSION };

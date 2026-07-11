@@ -2,13 +2,13 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
-import { IndexedDBManager } from './database/db';
+import { ReBuyDBManager } from './database/db';
 
 // Initialize offline database engine on application bootstrap
-IndexedDBManager.getInstance()
+ReBuyDBManager.getInstance()
   .initialize()
   .then(() => {
-    console.log('[ReBuy DB] Offline IndexedDB engine initialized successfully.');
+    console.log('[ReBuy DB] Offline ReBuyDB engine initialized successfully.');
   })
   .catch((error) => {
     console.error('[ReBuy DB] Failed to initialize offline engine:', error);
