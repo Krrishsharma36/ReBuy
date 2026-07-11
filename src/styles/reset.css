@@ -10,7 +10,7 @@ html {
   -webkit-text-size-adjust: none;
   text-size-adjust: none;
   scroll-behavior: smooth;
-  background-color: hsl(var(--bg-base));
+  background-color: var(--bg-app);
 }
 
 body,
@@ -37,13 +37,15 @@ body {
   min-height: 100vh;
   text-rendering: optimizeSpeed;
   line-height: 1.5;
-  color: hsl(var(--text-primary));
+  color: var(--text-primary);
   font-family: var(--font-family);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-app);
   overflow-x: hidden;
   padding: 0;
   margin: 0;
+  transition: background-color var(--transition-speed) var(--transition-ease), color var(--transition-speed) var(--transition-ease);
 }
 
 a {
@@ -69,17 +71,15 @@ select {
   margin: 0;
 }
 
-/* Remove default focus indicators but replace with premium accessibility outlines */
 *:focus {
   outline: none;
 }
 
 *:focus-visible {
-  outline: 2px solid hsl(var(--accent-primary) / 0.5);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
-/* Disable scroll bounce on iOS PWAs but allow smooth scrolling */
 body {
   position: relative;
   width: 100%;
