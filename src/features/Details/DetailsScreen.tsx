@@ -19,6 +19,7 @@ export function DetailsScreen() {
   const [activities, setActivities] = useState<ReBuyActivity[]>([]);
   const [stats, setStats] = useState<ObjectStatistics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [highlightedActivityId, setHighlightedActivityId] = useState<string | null>(null);
 
   // Modal / Form States
   const [isRecordAgainOpen, setIsRecordAgainOpen] = useState(false);
@@ -204,6 +205,44 @@ export function DetailsScreen() {
     }
   };
 
+  const handleHighlightLowest = () => {
+    if (!stats || activities.length === 0) return;
+    const lowestAct = activities.find(
+      a => !a.isArchived && Math.abs(a.amount / (a.quantity || 1) - stats.lowestAmount) < 0.001
+    );
+    if (lowestAct) {
+      setHighlightedActivityId(lowestAct.id);
+      setTimeout(() => {
+        const element = document.getElementById(`activity-${lowestAct.id}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 50);
+      setTimeout(() => {
+        setHighlightedActivityId(null);
+      }, 2500);
+    }
+  };
+
+  const handleHighlightHighest = () => {
+    if (!stats || activities.length === 0) return;
+    const highestAct = activities.find(
+      a => !a.isArchived && Math.abs(a.amount / (a.quantity || 1) - stats.highestAmount) < 0.001
+    );
+    if (highestAct) {
+      setHighlightedActivityId(highestAct.id);
+      setTimeout(() => {
+        const element = document.getElementById(`activity-${highestAct.id}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 50);
+      setTimeout(() => {
+        setHighlightedActivityId(null);
+      }, 2500);
+    }
+  };
+
   // Compare groupings based on Unit Price (amount/quantity) and ignoring undefined shop
   const getCompareGroups = () => {
     const shopGroups: Record<string, { min: number; max: number; last: number; count: number }> = {};
@@ -318,11 +357,21 @@ export function DetailsScreen() {
         ) : (
           stats && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-12)' }}>
-              <Card radius="md" style={{ gap: '4px' }}>
+              <Card
+                radius="md"
+                hoverable
+                onClick={handleHighlightLowest}
+                style={{ gap: '4px', cursor: 'pointer', borderColor: highlightedActivityId ? 'var(--primary)' : 'var(--border)' }}
+              >
                 <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Lowest Cost ({object.defaultUnit || 'unit'})</span>
                 <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--success)' }}>₹{stats.lowestAmount.toFixed(2)}</span>
               </Card>
-              <Card radius="md" style={{ gap: '4px' }}>
+              <Card
+                radius="md"
+                hoverable
+                onClick={handleHighlightHighest}
+                style={{ gap: '4px', cursor: 'pointer', borderColor: highlightedActivityId ? 'var(--primary)' : 'var(--border)' }}
+              >
                 <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Highest Cost ({object.defaultUnit || 'unit'})</span>
                 <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--danger)' }}>₹{stats.highestAmount.toFixed(2)}</span>
               </Card>
@@ -390,17 +439,24 @@ export function DetailsScreen() {
         </h2>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-12)' }}>
-          {activities.map((act) => (
-            <Card
-              key={act.id}
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: 'var(--space-16)'
-              }}
-            >
+          {activities.map((act) => {
+            const isHighlighted = act.id === highlightedActivityId;
+            return (
+              <Card
+                key={act.id}
+                id={`activity-${act.id}`}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: 'var(--space-16)',
+                  borderColor: isHighlighted ? 'var(--primary)' : 'var(--border)',
+                  backgroundColor: isHighlighted ? 'var(--bg-hover)' : 'var(--bg-card)',
+                  boxShadow: isHighlighted ? '0 0 16px rgba(37, 99, 235, 0.25)' : 'none',
+                  transition: 'all 0.3s ease-in-out'
+                }}
+              >
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
@@ -445,8 +501,9 @@ export function DetailsScreen() {
               >
                 Edit
               </Button>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       </section>
 
