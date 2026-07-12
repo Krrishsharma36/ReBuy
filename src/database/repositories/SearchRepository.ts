@@ -46,7 +46,8 @@ export class SearchRepository {
     const { store } = await this.dbManager.getStoreTransaction('searchIndex', 'readonly');
     const index = store.index('token');
     return new Promise((resolve, reject) => {
-      const request = index.getAll(tokenWord);
+      const range = IDBKeyRange.bound(tokenWord, tokenWord + '\uffff');
+      const request = index.getAll(range);
       request.onsuccess = () => {
         const documents = request.result as SearchIndexDocument[];
         resolve(documents.map(doc => doc.objectId));
