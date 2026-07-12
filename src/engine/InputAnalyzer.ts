@@ -90,8 +90,8 @@ export class InputAnalyzer {
       }
 
       // Check if token is a standard price / number
-      // e.g. "$66" or "66" or "15.49"
-      const numberRegex = /^\$?(\d+(?:\.\d{1,2})?)\$?$/;
+      // e.g. "₹66" or "rs.66" or "66" or "15.49"
+      const numberRegex = /^(?:₹|rs\.?|rs)?(\d+(?:\.\d{1,2})?)(?:rs\.?|rs)?$/i;
       const numberMatch = numberRegex.exec(token);
       if (numberMatch) {
         const val = parseFloat(numberMatch[1]);

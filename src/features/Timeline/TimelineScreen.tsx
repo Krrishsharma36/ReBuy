@@ -198,7 +198,7 @@ export function TimelineScreen() {
                     )}
                   </div>
                   <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--primary)' }}>
-                    ${act.amount.toFixed(2)}
+                    ₹{act.amount.toFixed(2)}
                   </span>
                 </Card>
               );

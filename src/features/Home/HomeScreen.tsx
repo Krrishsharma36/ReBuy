@@ -148,7 +148,7 @@ export function HomeScreen() {
     try {
       const { object, activity } = await MemoryEngine.commitCapture(preview);
       setToast({
-        message: `Saved: ${object.name} - $${activity.amount.toFixed(2)} at ${activity.shop || 'Local Store'}`,
+        message: `Saved: ${object.name} - ₹${activity.amount.toFixed(2)} at ${activity.shop || 'Local Store'}`,
         type: 'success'
       });
       setQuery('');
@@ -259,7 +259,7 @@ export function HomeScreen() {
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-16)', color: 'var(--text-secondary)', paddingLeft: '28px' }} className="text-12">
                   {enginePreview.preview.analyzed.amount !== undefined && (
-                    <span>Amount: <strong style={{ color: 'var(--text-primary)' }}>${enginePreview.preview.analyzed.amount.toFixed(2)}</strong></span>
+                    <span>Amount: <strong style={{ color: 'var(--text-primary)' }}>₹{enginePreview.preview.analyzed.amount.toFixed(2)}</strong></span>
                   )}
                   {enginePreview.preview.analyzed.shop && (
                     <span>Shop: <strong style={{ color: 'var(--text-primary)' }}>{enginePreview.preview.analyzed.shop}</strong></span>
@@ -272,7 +272,7 @@ export function HomeScreen() {
                 {enginePreview.preview.duplicateWarning && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-8)', color: 'var(--warning)', marginTop: '4px', paddingLeft: '28px' }} className="text-12">
                     <AlertTriangle size={14} />
-                    <span>Warning: Duplicate price of ${enginePreview.preview.duplicateWarning.amount.toFixed(2)} logged 5m ago.</span>
+                    <span>Warning: Duplicate price of ₹{enginePreview.preview.duplicateWarning.amount.toFixed(2)} logged 5m ago.</span>
                   </div>
                 )}
               </Card>
@@ -302,7 +302,7 @@ export function HomeScreen() {
                   </div>
                   {item.lastAmount !== undefined && (
                     <span className="text-14 font-mono" style={{ fontWeight: 600, color: 'var(--primary)' }}>
-                      ${item.lastAmount.toFixed(2)}
+                      ₹{item.lastAmount.toFixed(2)}
                     </span>
                   )}
                 </Card>
@@ -389,7 +389,7 @@ export function HomeScreen() {
                         </div>
                       </div>
                       <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--primary)' }}>
-                        ${act.amount.toFixed(2)}
+                        ₹{act.amount.toFixed(2)}
                       </span>
                     </Card>
                   );
@@ -466,7 +466,7 @@ export function HomeScreen() {
           <textarea
             value={modalText}
             onChange={(e) => setModalText(e.target.value)}
-            placeholder="e.g. Netflix monthly $15.49 #entertainment"
+            placeholder="e.g. Netflix monthly ₹150 #entertainment"
             style={{
               width: '100%',
               minHeight: '100px',
@@ -492,7 +492,7 @@ export function HomeScreen() {
           onConfirm={() => commitCapture(confirmDuplicate.preview)}
           title="Duplicate Entry Warning"
           confirmLabel="Log Anyway"
-          message={`An activity with an identical price of $${confirmDuplicate.preview.analyzed.amount?.toFixed(2)} was logged for "${confirmDuplicate.preview.analyzed.matchedObjectName}" less than 5 minutes ago. Do you wish to log this second activity anyway?`}
+          message={`An activity with an identical price of ₹${confirmDuplicate.preview.analyzed.amount?.toFixed(2)} was logged for "${confirmDuplicate.preview.analyzed.matchedObjectName}" less than 5 minutes ago. Do you wish to log this second activity anyway?`}
         />
       )}
 

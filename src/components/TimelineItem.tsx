@@ -38,8 +38,8 @@ export function TimelineItem({ item }: TimelineItemProps) {
     cleanText = cleanText.replace(/#\S+/g, '');
     // Remove merchant tokens
     cleanText = cleanText.replace(/@\S+/g, '');
-    // Remove dollar price tags
-    cleanText = cleanText.replace(/\$\d+(\.\d{2})?/g, '');
+    // Remove dollar and rupee price tags
+    cleanText = cleanText.replace(/(?:\$|₹)\d+(\.\d{2})?/g, '');
     
     return cleanText.trim() || 'Untitled Purchase';
   };
@@ -115,7 +115,7 @@ export function TimelineItem({ item }: TimelineItemProps) {
               borderRadius: 'var(--radius-8)'
             }}
           >
-            ${item.price.toFixed(2)}
+            ₹{item.price.toFixed(2)}
           </span>
         )}
         <ArrowRight size={18} style={{ color: 'var(--border)' }} />

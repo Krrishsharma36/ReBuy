@@ -53,7 +53,7 @@ export class IntentDetector {
     const hasPriceRegex = /\b\d+(?:\.\d{1,2})?\b/;
     if (hasPriceRegex.test(raw) && tokens.length >= 2) {
       // Ensure it's not a year or code (must be accompanied by other text tokens)
-      const nonNumericTokens = tokens.filter(t => !/^\$?\d+(?:\.\d+)?\$?$/.test(t));
+      const nonNumericTokens = tokens.filter(t => !/^(?:\$|₹)?\d+(?:\.\d+)?(?:\$|₹)?$/.test(t));
       if (nonNumericTokens.length > 0) {
         return {
           intent: 'capture',

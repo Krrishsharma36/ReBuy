@@ -187,12 +187,12 @@ export function DetailsScreen() {
 
     if (diff > 0) {
       return {
-        text: `↑ $${diff.toFixed(2)} since last purchase`,
+        text: `↑ ₹${diff.toFixed(2)} since last purchase`,
         color: 'var(--danger)' // Soft Red
       };
     } else if (diff < 0) {
       return {
-        text: `↓ $${Math.abs(diff).toFixed(2)} cheaper than last purchase`,
+        text: `↓ ₹${Math.abs(diff).toFixed(2)} cheaper than last purchase`,
         color: 'var(--success)' // Soft Green
       };
     } else {
@@ -263,7 +263,7 @@ export function DetailsScreen() {
             {object.lastAmount !== undefined && (
               <div style={{ textAlign: 'right' }}>
                 <span className="text-28 font-mono" style={{ fontWeight: 700, color: 'var(--primary)' }}>
-                  ${object.lastAmount.toFixed(2)}
+                  ₹{object.lastAmount.toFixed(2)}
                 </span>
                 <p className="text-12" style={{ color: 'var(--text-secondary)' }}>Latest Price</p>
               </div>
@@ -314,15 +314,15 @@ export function DetailsScreen() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-12)' }}>
               <Card radius="md" style={{ gap: '4px' }}>
                 <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Lowest Cost</span>
-                <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--success)' }}>${stats.lowestAmount.toFixed(2)}</span>
+                <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--success)' }}>₹{stats.lowestAmount.toFixed(2)}</span>
               </Card>
               <Card radius="md" style={{ gap: '4px' }}>
                 <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Highest Cost</span>
-                <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--danger)' }}>${stats.highestAmount.toFixed(2)}</span>
+                <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--danger)' }}>₹{stats.highestAmount.toFixed(2)}</span>
               </Card>
               <Card radius="md" style={{ gap: '4px' }}>
                 <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Average Price</span>
-                <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--primary)' }}>${stats.averageAmount.toFixed(2)}</span>
+                <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--primary)' }}>₹{stats.averageAmount.toFixed(2)}</span>
               </Card>
               <Card radius="md" style={{ gap: '4px' }}>
                 <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Most Used Shop</span>
@@ -361,13 +361,13 @@ export function DetailsScreen() {
                   <div style={{ textAlign: 'right' }}>
                     <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Min/Max</span>
                     <p className="text-12 font-mono" style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-                      ${c.min.toFixed(2)} - ${c.max.toFixed(2)}
+                      ₹{c.min.toFixed(2)} - ₹{c.max.toFixed(2)}
                     </p>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Last logged</span>
                     <p className="text-14 font-mono" style={{ color: 'var(--primary)', fontWeight: 600 }}>
-                      ${c.last.toFixed(2)}
+                      ₹{c.last.toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -398,7 +398,7 @@ export function DetailsScreen() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                    ${act.amount.toFixed(2)}
+                    ₹{act.amount.toFixed(2)}
                   </span>
                   <span className="text-12" style={{ color: 'var(--text-secondary)' }}>
                     ({act.quantity} {act.unit || 'unit'})
@@ -457,7 +457,7 @@ export function DetailsScreen() {
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-16)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label className="text-12" style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Enter Amount ($)</label>
+            <label className="text-12" style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Enter Amount (₹)</label>
             <input
               autoFocus
               type="number"
@@ -624,7 +624,7 @@ export function DetailsScreen() {
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-16)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label className="text-12" style={{ fontWeight: 600 }}>Amount ($)</label>
+            <label className="text-12" style={{ fontWeight: 600 }}>Amount (₹)</label>
             <input
               type="number"
               step="0.01"
