@@ -361,25 +361,53 @@ export function DetailsScreen() {
                 radius="md"
                 hoverable
                 onClick={handleHighlightLowest}
-                style={{ gap: '4px', cursor: 'pointer', borderColor: highlightedActivityId ? 'var(--primary)' : 'var(--border)' }}
+                style={{
+                  gap: '4px',
+                  cursor: 'pointer',
+                  backgroundColor: 'rgba(34, 197, 94, 0.06)',
+                  borderColor: highlightedActivityId ? 'var(--primary)' : 'rgba(34, 197, 94, 0.2)',
+                  color: '#22C55E'
+                }}
               >
                 <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Lowest Cost ({object.defaultUnit || 'unit'})</span>
-                <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--success)' }}>₹{stats.lowestAmount.toFixed(2)}</span>
+                <span className="text-16 font-mono" style={{ fontWeight: 600 }}>₹{stats.lowestAmount.toFixed(2)}</span>
               </Card>
               <Card
                 radius="md"
                 hoverable
                 onClick={handleHighlightHighest}
-                style={{ gap: '4px', cursor: 'pointer', borderColor: highlightedActivityId ? 'var(--primary)' : 'var(--border)' }}
+                style={{
+                  gap: '4px',
+                  cursor: 'pointer',
+                  backgroundColor: 'rgba(239, 68, 68, 0.06)',
+                  borderColor: highlightedActivityId ? 'var(--primary)' : 'rgba(239, 68, 68, 0.2)',
+                  color: '#EF4444'
+                }}
               >
                 <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Highest Cost ({object.defaultUnit || 'unit'})</span>
-                <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--danger)' }}>₹{stats.highestAmount.toFixed(2)}</span>
+                <span className="text-16 font-mono" style={{ fontWeight: 600 }}>₹{stats.highestAmount.toFixed(2)}</span>
               </Card>
-              <Card radius="md" style={{ gap: '4px' }}>
+              <Card
+                radius="md"
+                style={{
+                  gap: '4px',
+                  backgroundColor: 'rgba(37, 99, 235, 0.06)',
+                  borderColor: 'rgba(37, 99, 235, 0.2)',
+                  color: 'var(--primary)'
+                }}
+              >
                 <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Average Price ({object.defaultUnit || 'unit'})</span>
-                <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--primary)' }}>₹{stats.averageAmount.toFixed(2)}</span>
+                <span className="text-16 font-mono" style={{ fontWeight: 600 }}>₹{stats.averageAmount.toFixed(2)}</span>
               </Card>
-              <Card radius="md" style={{ gap: '4px' }}>
+              <Card
+                radius="md"
+                style={{
+                  gap: '4px',
+                  backgroundColor: 'rgba(168, 85, 247, 0.06)',
+                  borderColor: 'rgba(168, 85, 247, 0.2)',
+                  color: '#A855F7'
+                }}
+              >
                 <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Most Used Shop</span>
                 <span className="text-16" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{stats.mostUsedShop}</span>
               </Card>
@@ -473,8 +501,21 @@ export function DetailsScreen() {
                     </span>
                   )}
                   {act.remarks && (
-                    <span className="text-12" style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                      • "{act.remarks}"
+                    <span
+                      className="text-12"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        padding: '2px 8px',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        color: 'var(--primary)',
+                        border: '1px solid rgba(37, 99, 235, 0.15)',
+                        borderRadius: 'var(--radius-8)',
+                        fontWeight: 500,
+                        marginLeft: '4px'
+                      }}
+                    >
+                      {act.remarks}
                     </span>
                   )}
                 </div>
