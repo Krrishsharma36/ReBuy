@@ -451,14 +451,16 @@ export function DetailsScreen() {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   padding: 'var(--space-16)',
-                  borderColor: isHighlighted ? 'var(--primary)' : 'var(--border)',
+                  border: '1px solid var(--border)',
+                  borderLeft: isHighlighted ? '4px solid var(--primary)' : '3px solid var(--border)',
+                  borderRadius: 'var(--radius-8)',
                   backgroundColor: isHighlighted ? 'var(--bg-hover)' : 'var(--bg-card)',
                   boxShadow: isHighlighted ? '0 0 16px rgba(37, 99, 235, 0.25)' : 'none',
                   transition: 'all 0.3s ease-in-out'
                 }}
               >
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                   <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
                     ₹{act.amount.toFixed(2)}
                   </span>
@@ -468,6 +470,11 @@ export function DetailsScreen() {
                   {act.quantity > 1 && (
                     <span className="text-12" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
                       • ₹{(act.amount / act.quantity).toFixed(2)}/{act.unit || 'unit'}
+                    </span>
+                  )}
+                  {act.remarks && (
+                    <span className="text-12" style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                      • "{act.remarks}"
                     </span>
                   )}
                 </div>
@@ -480,12 +487,6 @@ export function DetailsScreen() {
                   )}
                   <span>• {formatDate(act.activityDate)}</span>
                 </div>
-                
-                {act.remarks && (
-                  <p className="text-12" style={{ color: 'var(--text-secondary)', fontStyle: 'italic', marginTop: '4px' }}>
-                    Remarks: "{act.remarks}"
-                  </p>
-                )}
               </div>
 
               <Button
