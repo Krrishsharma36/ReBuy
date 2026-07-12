@@ -3,6 +3,7 @@ import { ReBuyActivity, ObjectStatistics } from '../types';
 export class StatisticsService {
   /**
    * Computes statistics for a list of activities associated with a single object.
+   * Compares prices normalized to 1 unit (Unit Price = amount / quantity) to ensure fair comparison.
    */
   public static calculate(activities: ReBuyActivity[]): ObjectStatistics {
     const validActivities = activities.filter(a => !a.isArchived);
@@ -16,7 +17,9 @@ export class StatisticsService {
     const amountBearingActivities = validActivities.filter(a => a.amount > 0);
 
     const purchaseCount = purchaseActivities.length;
-    const latestAmount = sorted.length > 0 ? sorted[0].amount : 0;
+    
+    // Normalize latest amount to unit price
+    const latestAmount = sorted.length > 0 ? (sorted[0].amount / (sorted[0].quantity || 1)) : 0;
     const lastActivityDate = sorted.length > 0 ? sorted[0].activityDate : undefined;
 
     let lowestAmount = 0;
@@ -24,12 +27,13 @@ export class StatisticsService {
     let averageAmount = 0;
 
     if (amountBearingActivities.length > 0) {
-      const amounts = amountBearingActivities.map(a => a.amount);
-      lowestAmount = Math.min(...amounts);
-      highestAmount = Math.max(...amounts);
+      // Extract unit prices
+      const unitPrices = amountBearingActivities.map(a => a.amount / (a.quantity || 1));
+      lowestAmount = Math.min(...unitPrices);
+      highestAmount = Math.max(...unitPrices);
       
-      const totalAmount = amounts.reduce((sum, val) => sum + val, 0);
-      averageAmount = totalAmount / amounts.length;
+      const totalAmount = unitPrices.reduce((sum, val) => sum + val, 0);
+      averageAmount = totalAmount / unitPrices.length;
     }
 
     // Calculate most used shop
@@ -59,4 +63,4 @@ export class StatisticsService {
     };
   }
 }
-
+export type { ObjectStatistics };

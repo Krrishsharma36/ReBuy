@@ -181,18 +181,19 @@ export function DetailsScreen() {
 
   const getPriceDifference = () => {
     if (activities.length < 2) return null;
-    const current = activities[0].amount;
-    const previous = activities[1].amount;
+    const current = activities[0].amount / (activities[0].quantity || 1);
+    const previous = activities[1].amount / (activities[1].quantity || 1);
     const diff = current - previous;
+    const unitLabel = object?.defaultUnit || activities[0].unit || 'unit';
 
     if (diff > 0) {
       return {
-        text: `↑ ₹${diff.toFixed(2)} since last purchase`,
+        text: `↑ ₹${diff.toFixed(2)}/${unitLabel} since last purchase`,
         color: 'var(--danger)' // Soft Red
       };
     } else if (diff < 0) {
       return {
-        text: `↓ ₹${Math.abs(diff).toFixed(2)} cheaper than last purchase`,
+        text: `↓ ₹${Math.abs(diff).toFixed(2)}/${unitLabel} cheaper than last purchase`,
         color: 'var(--success)' // Soft Green
       };
     } else {
@@ -203,18 +204,20 @@ export function DetailsScreen() {
     }
   };
 
-  // Compare groupings
+  // Compare groupings based on Unit Price (amount/quantity) and ignoring undefined shop
   const getCompareGroups = () => {
     const shopGroups: Record<string, { min: number; max: number; last: number; count: number }> = {};
     
     activities.forEach(act => {
-      if (!act.isArchived) {
-        const shop = act.shop || 'Unknown Shop';
+      if (!act.isArchived && act.shop && act.shop.trim() && act.shop.toLowerCase() !== 'unknown shop') {
+        const shop = act.shop.trim();
+        const unitPrice = act.amount / (act.quantity || 1);
         if (!shopGroups[shop]) {
-          shopGroups[shop] = { min: act.amount, max: act.amount, last: act.amount, count: 0 };
+          shopGroups[shop] = { min: unitPrice, max: unitPrice, last: unitPrice, count: 0 };
+        } else {
+          shopGroups[shop].min = Math.min(shopGroups[shop].min, unitPrice);
+          shopGroups[shop].max = Math.max(shopGroups[shop].max, unitPrice);
         }
-        shopGroups[shop].min = Math.min(shopGroups[shop].min, act.amount);
-        shopGroups[shop].max = Math.max(shopGroups[shop].max, act.amount);
         shopGroups[shop].count++;
       }
     });
@@ -263,9 +266,12 @@ export function DetailsScreen() {
             {object.lastAmount !== undefined && (
               <div style={{ textAlign: 'right' }}>
                 <span className="text-28 font-mono" style={{ fontWeight: 700, color: 'var(--primary)' }}>
-                  ₹{object.lastAmount.toFixed(2)}
+                  ₹{(object.lastAmount / (object.defaultQuantity || 1)).toFixed(2)}
+                  <span className="text-14" style={{ fontWeight: 400, color: 'var(--text-secondary)' }}>/{object.defaultUnit || 'unit'}</span>
                 </span>
-                <p className="text-12" style={{ color: 'var(--text-secondary)' }}>Latest Price</p>
+                <p className="text-12" style={{ color: 'var(--text-secondary)' }}>
+                  Latest: ₹{object.lastAmount.toFixed(2)} for {object.defaultQuantity} {object.defaultUnit}
+                </p>
               </div>
             )}
           </div>
@@ -313,15 +319,15 @@ export function DetailsScreen() {
           stats && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-12)' }}>
               <Card radius="md" style={{ gap: '4px' }}>
-                <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Lowest Cost</span>
+                <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Lowest Cost ({object.defaultUnit || 'unit'})</span>
                 <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--success)' }}>₹{stats.lowestAmount.toFixed(2)}</span>
               </Card>
               <Card radius="md" style={{ gap: '4px' }}>
-                <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Highest Cost</span>
+                <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Highest Cost ({object.defaultUnit || 'unit'})</span>
                 <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--danger)' }}>₹{stats.highestAmount.toFixed(2)}</span>
               </Card>
               <Card radius="md" style={{ gap: '4px' }}>
-                <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Average Price</span>
+                <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Average Price ({object.defaultUnit || 'unit'})</span>
                 <span className="text-16 font-mono" style={{ fontWeight: 600, color: 'var(--primary)' }}>₹{stats.averageAmount.toFixed(2)}</span>
               </Card>
               <Card radius="md" style={{ gap: '4px' }}>
@@ -359,13 +365,13 @@ export function DetailsScreen() {
                 </div>
                 <div style={{ display: 'flex', gap: 'var(--space-16)', alignItems: 'center' }}>
                   <div style={{ textAlign: 'right' }}>
-                    <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Min/Max</span>
+                    <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Min/Max ({object.defaultUnit || 'unit'})</span>
                     <p className="text-12 font-mono" style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
                       ₹{c.min.toFixed(2)} - ₹{c.max.toFixed(2)}
                     </p>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Last logged</span>
+                    <span className="text-12" style={{ color: 'var(--text-secondary)' }}>Last logged ({object.defaultUnit || 'unit'})</span>
                     <p className="text-14 font-mono" style={{ color: 'var(--primary)', fontWeight: 600 }}>
                       ₹{c.last.toFixed(2)}
                     </p>
@@ -403,6 +409,11 @@ export function DetailsScreen() {
                   <span className="text-12" style={{ color: 'var(--text-secondary)' }}>
                     ({act.quantity} {act.unit || 'unit'})
                   </span>
+                  {act.quantity > 1 && (
+                    <span className="text-12" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                      • ₹{(act.amount / act.quantity).toFixed(2)}/{act.unit || 'unit'}
+                    </span>
+                  )}
                 </div>
                 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', color: 'var(--text-secondary)' }} className="text-12">
