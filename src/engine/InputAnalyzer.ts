@@ -11,7 +11,7 @@ export interface AnalyzedInput {
   remarks?: string;
 }
 
-const COMMON_UNITS = ['kg', 'gm', 'g', 'l', 'ml', 'pcs', 'pc', 'pack', 'packs', 'bottle', 'bottles', 'box', 'boxes', 'm', 'ft'];
+const COMMON_UNITS = ['kg', 'gm', 'g', 'l', 'ml', 'pcs', 'pc', 'pack', 'packs', 'bottle', 'bottles', 'box', 'boxes', 'm', 'ft', 'litre', 'litres', 'ltr', 'ltrs'];
 
 export class InputAnalyzer {
   /**
