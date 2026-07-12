@@ -156,11 +156,28 @@ export class InputAnalyzer {
       }
     }
 
-    // If no known object matched, the first word(s) before amount might be the object name
+    // If no known object matched, resolve the name from remaining words
     if (!matchedObjectName && remainingWords.length > 0) {
-      // Find the words before the amount position (if any) or just take the first word as the object name
-      matchedObjectName = remainingWords[0];
-      reconstructedText = remainingWords.slice(1).join(' ');
+      // 1. Check if there's a comma or dash that can separate name from remarks
+      const separatorIndex = reconstructedText.search(/[,|\-]/);
+      if (separatorIndex !== -1) {
+        const namePart = reconstructedText.substring(0, separatorIndex).trim();
+        const remarksPart = reconstructedText.substring(separatorIndex + 1).trim();
+        if (namePart) {
+          matchedObjectName = namePart;
+          reconstructedText = remarksPart;
+        }
+      } else {
+        // 2. Default to taking the first 2 words as the name for multi-word phrases (e.g. "submersible motor")
+        // and push the subsequent words (e.g. "copper jindal") into remarks.
+        if (remainingWords.length >= 2) {
+          matchedObjectName = remainingWords.slice(0, 2).join(' ');
+          reconstructedText = remainingWords.slice(2).join(' ');
+        } else {
+          matchedObjectName = remainingWords[0];
+          reconstructedText = '';
+        }
+      }
     }
 
     return {
